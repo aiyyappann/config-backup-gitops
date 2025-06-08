@@ -1,0 +1,467 @@
+
+Sun Jun  8 04:22:06.688 UTC
+Building configuration...
+!! IOS XR Configuration 7.3.2
+!! Last configuration change at Sun Jun  8 01:57:16 2025 by admin
+!
+hostname XRRouter
+aaa password-policy 30days
+ numeric 1
+ lifetime days 30
+ min-length 15
+ special-char 1
+ min-char-change 1
+!
+aaa password-policy pwdpolicy
+ numeric 1
+ lifetime months 3
+ min-length 15
+ special-char 1
+ min-char-change 1
+!
+snmp-server traps alarm
+banner motd "Hello there! Hoping you are having a great day
+... Welcome to '$(hostname)',
+your favorite CISCO.IOSXR.IOSXR Sandbox"
+logging trap informational
+logging archive
+ device disk0
+ file-size 100
+ frequency weekly
+ archive-size 100
+ archive-length 30
+!
+logging monitor informational
+logging buffered 2097152
+logging buffered informational
+logging 33.34.35.36 vrf default port default
+logging 192.168.52.22 vrf default severity notifications
+logging source-interface Loopback1
+service timestamps debug datetime
+template bla
+ hostname DEMO
+end-template
+radius source-interface MgmtEth0/RP0/CPU0/0 vrf default
+radius-server host 10.112.38.32 auth-port 1645 acct-port 1646
+!
+radius-server key 7 1304131F0202
+radius-server timeout 60
+tacacs-server host 10.112.38.32 port 49
+!
+tacacs-server key 7 070E25414707
+tacacs-server timeout 60
+username admin
+ group root-lr
+ group cisco-support
+ secret 10 $6$F3kfY1/w8tjGCY1.$MC31GMZoTQZw/QaXJACQZYJltYllPSYCC9LRzzhxb5Zn9X.mWWUezTo/kXORs3JsM/0ttm3peLBijGR83osQ9/
+!
+username new
+ password-policy 30days password 7 143453180F0B2B38372D276470405343
+!
+username test123
+ password-policy pwdpolicy password 7 04784A150C2E4D5D1A1C1146405858517C
+!
+username pam
+ secret 10 $6$ycsSH18irovBBH1.$zul47qeEtqPjNoUiBZap076SqlvHVKci9IAFcos6VZtp0Pw4G/igRUY7lBR8tsy.EX0vpnSfTAxbhAzPJW7zH.
+!
+username pamtest
+ password 7 120D0004065A5E576A
+!
+aaa accounting system default start-stop group ISE-PSN
+aaa accounting commands default start-stop group ISE-PSN
+aaa group server tacacs+ ISE-PSN
+ server 10.112.38.32
+!
+aaa authorization commands auth-list local
+aaa authentication login default group tacacs+ local
+aaa authentication login my-auth-list local
+cdp
+cdp advertise v1
+grpc
+ port 57777
+ no-tls
+ address-family ipv4
+!
+telemetry model-driven
+ destination-group COLLECTOR-GROUP
+  address-family ipv4 10.11.57.63 port 57777
+  !
+ !
+ sensor-group CPU-MEM
+  sensor-path Cisco-IOS-XR-wd-oper:watchdog/nodes/node
+ !
+ sensor-group INTERFACES
+  sensor-path Cisco-IOS-XR-infra-statsd-oper:infra-statistics/interfaces/interface/latest/generic-counters
+ !
+ sensor-group BGP-NEIGHBORS
+  sensor-path Cisco-IOS-XR-ipv4-bgp-oper:bgp/instances/instance/instance-active/default-vrf/neighbors/neighbor
+ !
+ subscription SUB-INTERFACES
+  sensor-group-id CPU-MEM sample-interval 10000
+  sensor-group-id INTERFACES sample-interval 10000
+  sensor-group-id BGP-NEIGHBORS sample-interval 10000
+  destination-id COLLECTOR-GROUP
+ !
+!
+nsr process-failures switchover
+vrf test
+!
+vrf MSK-977
+ address-family ipv4 unicast
+  import route-target
+   977:977
+  !
+  export route-target
+   977:977
+  !
+ !
+!
+vrf Customer-A
+ description VRF for Customer A
+ address-family ipv4 unicast
+  import route-target
+   65001:100
+  !
+  export route-target
+   65001:100
+  !
+ !
+!
+line template VTY
+ password 7 02050D4808093022455D0A16
+ exec-timeout 10 0
+ transport input ssh telnet
+ transport output ssh telnet
+!
+line console
+ authorization commands auth-list
+ login authentication my-auth-list
+ exec-timeout 0 0
+ absolute-timeout 0
+ session-timeout 0
+!
+line default
+ exec-timeout 0 0
+ absolute-timeout 0
+ session-timeout 0
+!
+line template vty-tmp
+ login authentication my-auth-list
+!
+vty-pool default 0 99 line-template vty-tmp
+snmp-server user netadmin SECUREGROUP v3 auth sha encrypted 04750E122E2541470739544541 priv aes 128 encrypted 112C1706050B1B18247B7977
+snmp-server user snmpadmin SNMPv3-ADM v3
+snmp-server view FULLVIEW iso included
+snmp-server community public RO IPv4 SNMP_DENY
+snmp-server community 12345_12345 RO
+snmp-server group SNMPv3-ADM v3 priv
+snmp-server group SECUREGROUP v3 priv read FULLVIEW
+snmp-server traps rf
+snmp-server traps bfd
+snmp-server traps ntp
+snmp-server traps copy-complete
+snmp-server traps snmp linkup
+snmp-server traps snmp linkdown
+snmp-server traps snmp coldstart
+snmp-server traps snmp warmstart
+snmp-server traps snmp authentication
+snmp-server traps flash removal
+snmp-server traps flash insertion
+snmp-server traps power
+snmp-server traps config
+snmp-server traps entity
+snmp-server traps selective-vrf-download role-change
+snmp-server traps syslog
+snmp-server traps system
+snmp-server traps diameter peerup
+snmp-server traps diameter peerdown
+snmp-server traps diameter protocolerror
+snmp-server traps diameter permanentfail
+snmp-server traps diameter transientfail
+snmp-server traps bridgemib
+snmp-server traps addrpool low
+snmp-server traps addrpool high
+snmp-server traps cisco-entity-ext
+snmp-server traps entity-state operstatus
+snmp-server traps entity-state switchover
+snmp-server traps entity-redundancy all
+snmp-server traps entity-redundancy status
+snmp-server traps entity-redundancy switchover
+snmp-server contact Admin admin@gmail.com
+snmp-server location Matrecomm-Bengaluru
+ntp
+ authentication-key 45 md5 encrypted 044F0E151B701E1B5F4E57
+ authenticate
+ trusted-key 45
+ server 10.1.1.1
+ source Loopback7
+!
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method http
+ !
+!
+netconf-yang agent
+ ssh
+!
+ipv4 access-list BLA
+ 10 remark Deny
+ 11 deny ipv4 any any log
+!
+ipv4 access-list IPv4-ACL
+ 10 deny tcp any 198.51.100.0 0.0.0.255
+ 20 permit tcp any any
+!
+ipv4 access-list SNMP_DENY
+ 10 remark Deny
+ 11 deny ipv4 any any log
+!
+interface Loopback1
+ ipv4 address 1.1.1.1 255.255.255.255
+!
+interface Loopback20
+ ipv4 address 192.168.10.1 255.255.255.0
+!
+interface Loopback56
+ description THIS IS A TEST LOOPBACK
+ ipv4 address 56.56.56.56 255.255.255.255
+!
+interface Loopback100
+ vrf Customer-A
+ ipv4 address 192.168.100.1 255.255.255.255
+!
+interface Loopback120
+ ipv4 address 192.0.2.1 255.255.255.255
+!
+interface Loopback200
+ description Configured by Ansible
+ ipv4 address 10.200.200.200 255.255.255.255
+!
+interface Loopback300
+ description Configured by Ansible
+ ipv4 address 3.3.3.3 255.255.255.255
+!
+interface Loopback301
+ description Configured by Ansible using Jinja2
+ ipv4 address 3.3.3.3 255.255.255.255
+!
+interface Loopback555
+ description loooo555
+ ipv4 address 15.15.15.15 255.255.255.0
+!
+interface Loopback600
+ description testing
+!
+interface Loopback700
+ description for testing
+!
+interface Loopback777
+ description MSK Loopback sent using Netmiko
+ ipv4 address 20.20.30.2 255.255.255.255
+!
+interface Loopback888
+ description lo888
+ ipv4 address 18.18.18.18 255.255.255.0
+!
+interface Loopback977
+ vrf MSK-977
+ ipv4 address 20.20.20.3 255.255.255.255
+!
+interface Loopback999
+ description MSK Loopback Created using NETCONF
+ ipv4 address 20.20.20.30 255.255.255.255
+!
+interface Loopback11111
+ description lo11111
+ ipv4 address 11.11.11.11 255.255.255.255
+!
+interface MgmtEth0/RP0/CPU0/0
+ ipv4 address 10.10.20.175 255.255.255.0
+!
+interface GigabitEthernet0/0/0/1
+ description test
+ vrf Customer-A
+ ipv4 address 10.0.0.1 255.255.255.0
+ ipv6 enable
+!
+interface GigabitEthernet0/0/0/2
+ description test
+ shutdown
+!
+interface GigabitEthernet0/0/0/3
+ description test
+ shutdown
+!
+interface GigabitEthernet0/0/0/4
+ shutdown
+!
+interface GigabitEthernet0/0/0/5
+ shutdown
+!
+interface GigabitEthernet0/0/0/6
+ shutdown
+!
+interface preconfigure GigabitEthernet0/0/0/7
+ description test
+!
+interface preconfigure TenGigE0/0/0/0
+!
+route-policy v4_To_VIDEOTRON_INTERNET
+  if destination in (74.115.198.0/23) then
+    pass
+  elseif destination in (199.7.158.0/23) then
+    pass
+  elseif destination in (199.119.234.0/23) then
+    pass
+  elseif destination in (208.98.222.0/23) then
+    pass
+  elseif destination in (208.98.223.0/24) then
+    pass
+  elseif destination in Wind-All-subnets then
+    pass
+  endif
+end-policy
+!
+router static
+ address-family ipv4 unicast
+  0.0.0.0/0 10.10.20.254
+  0.0.0.0/0 MgmtEth0/RP0/CPU0/0 10.10.20.254
+  10.11.57.0/24 10.10.20.254
+ !
+ vrf Test
+  address-family ipv4 unicast
+   10.1.1.0/24 192.168.1.1 description O&M
+  !
+ !
+ vrf test1
+  address-family ipv4 unicast
+   192.168.1.0/24 10.1.1.1 description Tst/1422
+  !
+ !
+!
+router isis 1
+ net 48.1234.1234.1234.00
+ address-family ipv4 unicast
+  metric-style wide
+ !
+ address-family ipv6 unicast
+  metric-style wide
+ !
+ interface Loopback100
+  address-family ipv4 unicast
+  !
+  address-family ipv6 unicast
+  !
+ !
+!
+router isis TEST
+ address-family ipv4 unicast
+ !
+ interface GigabitEthernet0/0/0/0
+  address-family ipv4 unicast
+  !
+ !
+ interface GigabitEthernet0/0/0/0/0
+  point-to-point
+ !
+!
+snmp-server traps isis all
+snmp-server traps bgp cbgp2
+snmp-server traps bgp
+router bgp 65400
+ bgp router-id 11.1.1.10
+ address-family ipv4 unicast
+  network 11.1.1.0/24
+ !
+ neighbor 11.1.1.60
+  remote-as 65460
+  address-family ipv4 unicast
+   next-hop-self
+  !
+ !
+!
+snmp-server traps hsrp
+snmp-server traps vrrp events
+snmp-server traps vpls all
+snmp-server traps vpls status
+snmp-server traps vpls full-clear
+snmp-server traps vpls full-raise
+snmp-server traps l2vpn all
+snmp-server traps l2vpn vc-up
+snmp-server traps l2vpn vc-down
+snmp-server traps mpls traffic-eng up
+snmp-server traps mpls traffic-eng down
+snmp-server traps mpls traffic-eng reroute
+snmp-server traps mpls traffic-eng reoptimize
+snmp-server traps mpls frr all
+snmp-server traps mpls frr protected
+snmp-server traps mpls frr unprotected
+snmp-server traps mpls ldp up
+snmp-server traps mpls ldp down
+snmp-server traps mpls ldp threshold
+snmp-server traps mpls traffic-eng p2mp up
+snmp-server traps mpls traffic-eng p2mp down
+snmp-server traps rsvp all
+snmp-server traps rsvp new-flow
+snmp-server traps rsvp lost-flow
+snmp-server traps mpls l3vpn all
+snmp-server traps mpls l3vpn vrf-up
+snmp-server traps mpls l3vpn vrf-down
+snmp-server traps mpls l3vpn max-threshold-cleared
+snmp-server traps mpls l3vpn max-threshold-exceeded
+snmp-server traps mpls l3vpn mid-threshold-exceeded
+snmp-server traps mpls l3vpn max-threshold-reissue-notif-time 1
+snmp-server traps pim neighbor-change
+snmp-server traps pim invalid-message-received
+snmp-server traps pim rp-mapping-change
+snmp-server traps pim interface-state-change
+snmp-server traps msdp peer-state-change
+xml agent tty
+ iteration off
+!
+snmp-server traps sensor
+snmp-server traps fru-ctrl
+netconf agent tty
+!
+snmp-server traps l2tun sessions
+snmp-server traps l2tun tunnel-up
+snmp-server traps l2tun tunnel-down
+snmp-server traps l2tun pseudowire status
+snmp-server traps pki
+snmp-server traps ipsec tunnel stop
+snmp-server traps ipsec tunnel start
+snmp-server traps isakmp tunnel stop
+snmp-server traps isakmp tunnel start
+ssh timeout 120
+ssh server v2
+ssh server vrf default
+ssh server netconf vrf default
+snmp-server traps ipsla
+ipsla
+ responder
+  twamp-light test-session 1
+   local-ip ::1 local-port 826 remote-ip ::2 remote-port 4000 vrf default
+   timeout 60
+  !
+  twamp-light test-session 2
+   local-ip fe80::250:56ff:febf:1337 local-port 826 remote-ip ::2 remote-port 4000 vrf Customer-A
+   timeout 61
+  !
+ !
+!
+snmp-server traps subscriber session-agg node
+snmp-server traps subscriber session-agg access-interface
+router eigrp 200
+ address-family ipv4
+  auto-summary
+ !
+!
+router eigrp 500
+ address-family ipv4
+  auto-summary
+ !
+!
+end
